@@ -1,15 +1,13 @@
 /**
- * Página de Recuperação de Senha.
- * Como usamos localStorage, permite redefinir a senha
- * informando o email cadastrado + nova senha.
+ * Página de Recuperação de Senha (Firebase).
+ * O usuário informa o email e o Firebase envia um link de redefinição.
  */
 
 'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { resetPassword } from '@/lib/auth';
-import { resetPasswordSchema } from '@/lib/validators';
+import { useAuth } from '@/hooks/use-auth'; // Atualizado para usar o hook
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,40 +16,33 @@ import { toast } from 'sonner';
 import { ArrowLeft, KeyRound, Utensils } from 'lucide-react';
 
 export default function RecuperarSenhaPage() {
-  const [formData, setFormData] = useState({
-    email: '',
-    newPassword: '',
-    confirmNewPassword: '',
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const { resetPassword } = useAuth(); // Puxa a nova função do Firebase
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
-    setLoading(true);
-
-    // Validação com Zod
-    const result = resetPasswordSchema.safeParse(formData);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((err) => {
-        if (err.path[0]) fieldErrors[err.path[0] as string] = err.message;
-      });
-      setErrors(fieldErrors);
-      setLoading(false);
+    setError('');
+    
+    // Validação simples de email direto no componente
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      setError('Por favor, insira um e-mail válido.');
       return;
     }
 
-    // Tenta redefinir a senha
-    const resetResult = await resetPassword(formData.email, formData.newPassword);
+    setLoading(true);
+
+    // Dispara a função do Firebase
+    const resetResult = await resetPassword(email);
+    
     if (resetResult.success) {
-      toast.success('Senha redefinida com sucesso!');
+      toast.success('E-mail de recuperação enviado!');
       setSuccess(true);
     } else {
       toast.error(resetResult.error || 'Erro ao redefinir senha.');
-      setErrors({ general: resetResult.error || 'Erro ao redefinir senha.' });
+      setError(resetResult.error || 'Erro ao redefinir senha.');
     }
     setLoading(false);
   };
@@ -73,8 +64,8 @@ export default function RecuperarSenhaPage() {
             <CardTitle className="text-xl">Recuperar Senha</CardTitle>
             <CardDescription>
               {success
-                ? 'Sua senha foi redefinida! Agora você pode fazer login.'
-                : 'Informe seu email e defina uma nova senha.'}
+                ? 'Verifique sua caixa de entrada (ou spam) para redefinir sua senha.'
+                : 'Informe seu email cadastrado para receber um link de redefinição.'}
             </CardDescription>
           </CardHeader>
 
@@ -96,44 +87,12 @@ export default function RecuperarSenhaPage() {
                     id="email"
                     type="email"
                     placeholder="seu@email.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className={errors.email ? 'border-destructive' : ''}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={error ? 'border-destructive' : ''}
                   />
-                  {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+                  {error && <p className="text-sm text-destructive">{error}</p>}
                 </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword">Nova senha</Label>
-                  <Input
-                    id="newPassword"
-                    type="password"
-                    placeholder="Mínimo 6 caracteres"
-                    value={formData.newPassword}
-                    onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
-                    className={errors.newPassword ? 'border-destructive' : ''}
-                  />
-                  {errors.newPassword && <p className="text-sm text-destructive">{errors.newPassword}</p>}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="confirmNewPassword">Confirmar nova senha</Label>
-                  <Input
-                    id="confirmNewPassword"
-                    type="password"
-                    placeholder="Repita a nova senha"
-                    value={formData.confirmNewPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmNewPassword: e.target.value })}
-                    className={errors.confirmNewPassword ? 'border-destructive' : ''}
-                  />
-                  {errors.confirmNewPassword && (
-                    <p className="text-sm text-destructive">{errors.confirmNewPassword}</p>
-                  )}
-                </div>
-
-                {errors.general && (
-                  <p className="text-sm text-destructive text-center">{errors.general}</p>
-                )}
               </CardContent>
 
               <CardFooter className="flex flex-col gap-4">
@@ -143,7 +102,7 @@ export default function RecuperarSenhaPage() {
                   ) : (
                     <>
                       <KeyRound className="mr-2 h-4 w-4" />
-                      Redefinir Senha
+                      Enviar Link de Recuperação
                     </>
                   )}
                 </Button>

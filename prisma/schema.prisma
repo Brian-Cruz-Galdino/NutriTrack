@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL") // Por padrão será "file:./dev.db"
+}
+
+// Representa a interface User (O ID será o UID do Firebase)
+model User {
+  id          String         @id
+  email       String         @unique
+  name        String
+  calorieGoal Int            @default(2000)
+  createdAt   DateTime       @default(now())
+  meals       Meal[]
+  fastings    Fasting[]
+}
+
+// Representa a interface CalorieEntry
+model Meal {
+  id          String   @id @default(uuid())
+  userId      String
+  dateTime    DateTime
+  description String
+  calories    Int
+  mealType    String   // cafe, almoco, lanche, jantar, ceia
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Representa a interface FastingEntry
+model Fasting {
+  id           String    @id @default(uuid())
+  userId       String
+  startTime    DateTime
+  endTime      DateTime?
+  plannedType  String    // 16:8, 18:6, 20:4, 24h, personalizado
+  plannedHours Int
+  status       String    // ativo, concluido
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

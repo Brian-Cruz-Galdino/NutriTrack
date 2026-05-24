@@ -1,110 +1,90 @@
-/**
- * Hook para gerenciar registros de jejum intermitente.
- * Controla iniciar, encerrar, listar e verificar jejum ativo.
- * Garante que apenas um jejum esteja ativo por vez.
- */
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { FastingEntry, FastingType } from '@/types';
-import {
-  getUserFastingEntries,
-  getActiveFasting,
-  addFastingEntry,
-  updateFastingEntry,
-} from '@/lib/storage';
 import { useAuth } from './use-auth';
 
 export function useFasting() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [fastings, setFastings] = useState<FastingEntry[]>([]);
   const [activeFasting, setActiveFasting] = useState<FastingEntry | null>(null);
   const [loading, setLoading] = useState(true);
 
-  /**
-   * Carrega todos os jejuns do usuário e verifica se há jejum ativo.
-   */
-  const loadFastings = useCallback(() => {
-    if (!user) return;
-    const entries = getUserFastingEntries(user.id);
-    // Ordena por data de início decrescente
-    entries.sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
-    setFastings(entries);
-    setActiveFasting(getActiveFasting(user.id));
-    setLoading(false);
+  const loadFastings = useCallback(async () => {
+    if (!user) {
+      setTimeout(() => setLoading(false), 0);
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/jejum?userId=${user.id}`);
+      if (res.ok) {
+        const data: FastingEntry[] = await res.json();
+        setFastings(data);
+        
+        const active = data.find((f) => f.status === 'ativo');
+        setActiveFasting(active || null);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar jejuns", error);
+    } finally {
+      setTimeout(() => setLoading(false), 0);
+    }
   }, [user]);
 
   useEffect(() => {
-    loadFastings();
-  }, [loadFastings]);
+    if (!authLoading) {
+      loadFastings();
+    }
+  }, [authLoading, loadFastings]);
 
-  /**
-   * Inicia um novo jejum.
-   * Verifica se já há um jejum ativo antes de criar.
-   * @returns true se o jejum foi iniciado com sucesso
-   */
-  const startFasting = useCallback(
-    (plannedType: FastingType, plannedHours: number): boolean => {
-      if (!user) return false;
+  const startFasting = useCallback(async (plannedType: FastingType, plannedHours: number): Promise<boolean> => {
+    if (!user || activeFasting) return false;
 
-      // Verifica se já existe jejum ativo
-      const active = getActiveFasting(user.id);
-      if (active) return false;
-
-      const entry: FastingEntry = {
-        id: uuidv4(),
+    const res = await fetch('/api/jejum', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         userId: user.id,
         startTime: new Date().toISOString(),
-        endTime: null,
         plannedType,
         plannedHours,
-        status: 'ativo',
-        createdAt: new Date().toISOString(),
-      };
+        status: 'ativo'
+      }),
+    });
 
-      addFastingEntry(entry);
-      loadFastings();
+    if (res.ok) {
+      await loadFastings();
       return true;
-    },
-    [user, loadFastings]
-  );
-
-  /**
-   * Encerra o jejum ativo do usuário.
-   * Calcula automaticamente a duração e marca como concluído.
-   */
-  const endFasting = useCallback(() => {
-    if (!user || !activeFasting) return;
-
-    const updatedEntry: FastingEntry = {
-      ...activeFasting,
-      endTime: new Date().toISOString(),
-      status: 'concluido',
-    };
-
-    updateFastingEntry(updatedEntry);
-    loadFastings();
+    }
+    return false;
   }, [user, activeFasting, loadFastings]);
 
-  /**
-   * Retorna a lista de jejuns concluídos (para histórico).
-   */
+  const endFasting = useCallback(async () => {
+    if (!user || !activeFasting) return;
+
+    await fetch(`/api/jejum/${activeFasting.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        endTime: new Date().toISOString(),
+        status: 'concluido'
+      }),
+    });
+
+    await loadFastings();
+  }, [user, activeFasting, loadFastings]);
+
   const getCompletedFastings = useCallback((): FastingEntry[] => {
     return fastings.filter((f) => f.status === 'concluido');
   }, [fastings]);
 
-  /**
-   * Calcula a duração de um jejum em horas.
-   * Se o jejum estiver ativo, usa o horário atual como fim.
-   */
   const getFastingDuration = useCallback((fasting: FastingEntry): number => {
     const start = new Date(fasting.startTime).getTime();
     const end = fasting.endTime
       ? new Date(fasting.endTime).getTime()
       : Date.now();
-    return (end - start) / (1000 * 60 * 60); // Converte ms para horas
+    return (end - start) / (1000 * 60 * 60);
   }, []);
 
   return {

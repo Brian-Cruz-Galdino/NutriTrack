@@ -1,50 +1,55 @@
-/**
- * Hook para gerenciar a meta calórica diária do usuário.
- * Lê e atualiza a meta no registro do usuário no localStorage.
- */
-
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getUserById, updateUser } from '@/lib/storage';
 import { useAuth } from './use-auth';
 
 export function useCalorieGoal() {
-  const { user } = useAuth();
-  const [calorieGoal, setCalorieGoal] = useState<number>(2000); // Padrão: 2000 kcal
+  const { user, loading: authLoading } = useAuth();
+  const [calorieGoal, setCalorieGoal] = useState<number>(2000);
   const [loading, setLoading] = useState(true);
 
-  /**
-   * Carrega a meta calórica do usuário logado.
-   */
-  const loadGoal = useCallback(() => {
-    if (!user) return;
-    const fullUser = getUserById(user.id);
-    if (fullUser) {
-      setCalorieGoal(fullUser.calorieGoal);
+  const loadGoal = useCallback(async () => {
+    if (!user) {
+      setTimeout(() => setLoading(false), 0);
+      return;
     }
-    setLoading(false);
+    
+    try {
+      const res = await fetch(`/api/usuario?userId=${user.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.calorieGoal) {
+          setCalorieGoal(data.calorieGoal);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao buscar meta calórica", error);
+    } finally {
+      setTimeout(() => setLoading(false), 0);
+    }
   }, [user]);
 
   useEffect(() => {
-    loadGoal();
-  }, [loadGoal]);
+    if (!authLoading) {
+      loadGoal();
+    }
+  }, [authLoading, loadGoal]);
 
-  /**
-   * Atualiza a meta calórica diária do usuário.
-   * Salva imediatamente no localStorage.
-   */
-  const updateGoal = useCallback(
-    (newGoal: number) => {
-      if (!user) return;
-      const fullUser = getUserById(user.id);
-      if (fullUser) {
-        updateUser({ ...fullUser, calorieGoal: newGoal });
+  const updateGoal = useCallback(async (newGoal: number) => {
+    if (!user) return;
+    try {
+      const res = await fetch('/api/usuario', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: user.id, calorieGoal: newGoal }),
+      });
+      if (res.ok) {
         setCalorieGoal(newGoal);
       }
-    },
-    [user]
-  );
+    } catch (error) {
+      console.error("Erro ao atualizar meta calórica", error);
+    }
+  }, [user]);
 
   return { calorieGoal, loading, updateGoal };
 }

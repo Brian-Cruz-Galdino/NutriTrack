@@ -2,7 +2,7 @@
  * Módulo de autenticação com localStorage.
  * Usa SHA-256 (Web Crypto API) para hash de senhas.
  * NOTA: Este é um sistema educacional — em produção, use bcrypt + backend real.
- */
+ 
 
 import { v4 as uuidv4 } from 'uuid';
 import { User, UserSession } from '@/types';
@@ -19,7 +19,7 @@ import {
  * Gera um hash SHA-256 de uma string usando a Web Crypto API.
  * Converte o resultado em string hexadecimal.
  * @param text - Texto a ser hashado (ex: senha do usuário)
- */
+ 
 async function hashPassword(text: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(text);
@@ -32,7 +32,7 @@ async function hashPassword(text: string): Promise<string> {
  * Cadastra um novo usuário no sistema.
  * Verifica se o email já existe antes de criar.
  * @returns Objeto com sucesso/erro e dados da sessão
- */
+ 
 export async function registerUser(
   name: string,
   email: string,
@@ -66,7 +66,7 @@ export async function registerUser(
 /**
  * Realiza o login do usuário.
  * Compara o hash da senha informada com o hash armazenado.
- */
+ 
 export async function loginUser(
   email: string,
   password: string
@@ -91,7 +91,7 @@ export async function loginUser(
 
 /**
  * Realiza o logout limpando a sessão do localStorage.
- */
+ 
 export function logoutUser(): void {
   setCurrentUser(null);
 }
@@ -99,7 +99,7 @@ export function logoutUser(): void {
 /**
  * Verifica se há um usuário logado.
  * Retorna a sessão atual ou null.
- */
+ 
 export function getSession(): UserSession | null {
   return getCurrentUser();
 }
@@ -107,7 +107,7 @@ export function getSession(): UserSession | null {
 /**
  * "Recuperação de senha" — como usamos localStorage, apenas
  * permite redefinir a senha se o usuário informar o email correto.
- */
+ 
 export async function resetPassword(
   email: string,
   newPassword: string
@@ -125,3 +125,4 @@ export async function resetPassword(
 
   return { success: true };
 }
+*/
