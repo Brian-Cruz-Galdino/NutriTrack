@@ -137,13 +137,10 @@ export default function HistoricoPage() {
                         )}
                       </div>
                       <div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="font-medium">
-                            {format(new Date(fasting.startTime), 'dd/MM/yyyy')}
+                            {FASTING_TYPE_LABELS[fasting.plannedType] || fasting.plannedType}
                           </p>
-                          <Badge variant="outline" className="text-xs">
-                            {FASTING_TYPE_LABELS[fasting.plannedType]?.split(' ')[0] || fasting.plannedType}
-                          </Badge>
                           {reachedGoal && (
                             <Badge className="bg-emerald-500/20 text-emerald-400 text-xs">
                               Meta atingida ✓
@@ -151,6 +148,8 @@ export default function HistoricoPage() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
+                          {format(new Date(fasting.startTime), 'dd/MM/yyyy')}
+                          {' — '}
                           {format(new Date(fasting.startTime), 'HH:mm')}
                           {' → '}
                           {fasting.endTime && format(new Date(fasting.endTime), 'HH:mm')}

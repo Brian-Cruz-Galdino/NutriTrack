@@ -11,9 +11,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useCalorieGoal } from '@/hooks/use-calorie-goal';
+import { useMeals } from '@/hooks/use-meals';
+import { useFasting } from '@/hooks/use-fasting';
 import { useTheme } from 'next-themes';
 import { calorieGoalSchema } from '@/lib/validators';
-import { getUserCalorieEntries, getUserFastingEntries } from '@/lib/storage';
+import { MEAL_TYPE_LABELS } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -25,6 +27,8 @@ import { Settings, Target, Sun, Moon, Download, FileJson, FileSpreadsheet } from
 export default function ConfiguracoesPage() {
   const { user } = useAuth();
   const { calorieGoal, updateGoal } = useCalorieGoal();
+  const { meals } = useMeals();
+  const { fastings } = useFasting();
   const { theme, setTheme } = useTheme();
 
   const [goalInput, setGoalInput] = useState('');
@@ -59,14 +63,14 @@ export default function ConfiguracoesPage() {
 
   /**
    * Exporta os dados do usuário em formato JSON.
-   * Cria um arquivo para download automático.
+   * Usa os dados já carregados pelos hooks (da API/banco de dados).
    */
   const exportJSON = () => {
     if (!user) return;
     const data = {
       usuario: { nome: user.name, email: user.email },
-      refeicoes: getUserCalorieEntries(user.id),
-      jejuns: getUserFastingEntries(user.id),
+      refeicoes: meals,
+      jejuns: fastings,
       metaCalórica: calorieGoal,
       exportadoEm: new Date().toISOString(),
     };
@@ -84,28 +88,20 @@ export default function ConfiguracoesPage() {
 
   /**
    * Exporta os registros de refeições em formato CSV.
-   * Formato compatível com Excel e Google Sheets.
+   * Usa os dados já carregados pelo hook useMeals (da API/banco de dados).
    */
   const exportCSV = () => {
     if (!user) return;
-    const meals = getUserCalorieEntries(user.id);
 
     // Cabeçalho do CSV
     const headers = ['Data/Hora', 'Descrição', 'Calorias', 'Tipo de Refeição'];
-    const mealTypeMap: Record<string, string> = {
-      cafe: 'Café da Manhã',
-      almoco: 'Almoço',
-      lanche: 'Lanche',
-      jantar: 'Jantar',
-      ceia: 'Ceia',
-    };
 
     // Converte cada registro em uma linha CSV
     const rows = meals.map((m) => [
       m.dateTime,
       `"${m.description}"`, // Aspas para evitar problemas com vírgulas
       m.calories.toString(),
-      mealTypeMap[m.mealType] || m.mealType,
+      MEAL_TYPE_LABELS[m.mealType] || m.mealType,
     ]);
 
     const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');

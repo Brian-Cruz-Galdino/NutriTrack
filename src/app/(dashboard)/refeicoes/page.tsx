@@ -233,7 +233,7 @@ export default function RefeicoesPage() {
                   id="mealType"
                   value={formData.mealType}
                   onChange={(e) => setFormData({ ...formData, mealType: e.target.value as MealType })}
-                  className={`flex h-8 w-full items-center rounded-lg border bg-transparent px-2.5 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${errors.mealType ? 'border-destructive' : 'border-input'}`}
+                  className={`flex h-10 w-full items-center rounded-lg border bg-background text-foreground px-3 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${errors.mealType ? 'border-destructive' : 'border-input'}`}
                 >
                   <option value="">Selecione o tipo</option>
                   {(Object.keys(MEAL_TYPE_LABELS) as MealType[]).map((type) => (

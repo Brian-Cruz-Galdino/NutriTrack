@@ -265,7 +265,7 @@ export default function JejumPage() {
                 id="fastingType"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value as FastingType)}
-                className={`flex h-8 w-full items-center rounded-lg border bg-transparent px-2.5 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${errors.plannedType ? 'border-destructive' : 'border-input'}`}
+                className={`flex h-10 w-full items-center rounded-lg border bg-background text-foreground px-3 py-2 text-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${errors.plannedType ? 'border-destructive' : 'border-input'}`}
               >
                 {(Object.keys(FASTING_TYPE_LABELS) as FastingType[]).map((type) => (
                   <option key={type} value={type}>

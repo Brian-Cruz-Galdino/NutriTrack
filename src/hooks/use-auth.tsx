@@ -60,6 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       await updateProfile(userCredential.user, { displayName: name });
 
+      // Atualiza o estado manualmente com o nome correto,
+      // porque o onAuthStateChanged pode disparar antes do updateProfile terminar
+      setUser({
+        id: userCredential.user.uid,
+        email: email,
+        name: name,
+      });
+
       await fetch('/api/usuario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

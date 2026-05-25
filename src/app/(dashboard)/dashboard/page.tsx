@@ -279,12 +279,12 @@ export default function DashboardPage() {
 
       {/* Jejum Ativo */}
       {activeFasting && (
-        <Card className="border-emerald-500/30 bg-gradient-to-r from-emerald-950/20 to-teal-950/20">
+        <Card className="border-violet-500/30 bg-gradient-to-r from-violet-950/20 to-purple-950/20">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
-              <Timer className="h-4 w-4 text-emerald-400 animate-pulse" />
+              <Timer className="h-4 w-4 text-violet-400 animate-pulse" />
               Jejum em Andamento
-              <Badge variant="outline" className="ml-auto border-emerald-500/50 text-emerald-400">
+              <Badge variant="outline" className="ml-auto border-violet-500/50 text-violet-400">
                 {activeFasting.plannedType}
               </Badge>
             </CardTitle>
@@ -292,7 +292,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-3xl font-mono font-bold text-emerald-400">
+                <p className="text-3xl font-mono font-bold text-violet-400">
                   {fastingElapsed}
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
@@ -323,16 +323,17 @@ export default function DashboardPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyCalorieData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="dia" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="dia" stroke="var(--color-muted-foreground)" fontSize={12} tick={{ fill: 'var(--color-muted-foreground)' }} />
+                  <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tick={{ fill: 'var(--color-muted-foreground)' }} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'var(--color-card)',
+                      border: '1px solid var(--color-border)',
                       borderRadius: '8px',
-                      color: 'hsl(var(--foreground))',
+                      color: 'var(--color-foreground)',
                     }}
+                    labelStyle={{ color: 'var(--color-foreground)' }}
                     formatter={(value) => [`${value} kcal`, 'Calorias']}
                   />
                   {/* Barra de calorias com gradiente verde */}
@@ -367,16 +368,17 @@ export default function DashboardPage() {
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={weeklyFastingData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="dia" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="dia" stroke="var(--color-muted-foreground)" fontSize={12} tick={{ fill: 'var(--color-muted-foreground)' }} />
+                  <YAxis stroke="var(--color-muted-foreground)" fontSize={12} tick={{ fill: 'var(--color-muted-foreground)' }} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'hsl(var(--card))',
-                      border: '1px solid hsl(var(--border))',
+                      backgroundColor: 'var(--color-card)',
+                      border: '1px solid var(--color-border)',
                       borderRadius: '8px',
-                      color: 'hsl(var(--foreground))',
+                      color: 'var(--color-foreground)',
                     }}
+                    labelStyle={{ color: 'var(--color-foreground)' }}
                     formatter={(value) => [`${value}h`, 'Jejum']}
                   />
                   <Line
