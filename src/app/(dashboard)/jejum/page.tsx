@@ -112,7 +112,7 @@ export default function JejumPage() {
   /**
    * Inicia um novo jejum após validação com Zod.
    */
-  const handleStartFasting = () => {
+  const handleStartFasting = async () => {
     setErrors({});
 
     const result = fastingSchema.safeParse({
@@ -129,7 +129,7 @@ export default function JejumPage() {
       return;
     }
 
-    const success = startFasting(selectedType, plannedHours);
+    const success = await startFasting(selectedType, plannedHours);
     if (success) {
       toast.success('Jejum iniciado! Boa sorte 💪');
     } else {
